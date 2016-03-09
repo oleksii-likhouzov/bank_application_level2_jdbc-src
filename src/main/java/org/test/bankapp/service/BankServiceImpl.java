@@ -11,9 +11,9 @@ import java.util.Set;
 
 public class BankServiceImpl implements BankService {
 
-    public void addClient(Bank bank, Client client) throws ClientExistsException {
+    public Client addClient(Bank bank, Client client) throws ClientExistsException {
 
-            bank.addClient(client);
+            return bank.addClient(client);
     }
 
     public void removeClient(Bank bank, Client client) {
@@ -34,6 +34,13 @@ public class BankServiceImpl implements BankService {
     }
 
     public void setActiveAccount(Client client, Account account) {
+        Account tmpAccount = client.getActiveAccount();
+        if (tmpAccount!= null) {
+            tmpAccount.setActive(false);
+        }
+        if (account != null) {
+            account.setActive(true);
+        }
         client.setActiveAccount(account);
     }
 

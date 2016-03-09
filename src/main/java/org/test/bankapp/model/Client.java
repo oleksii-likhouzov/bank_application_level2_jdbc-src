@@ -6,21 +6,20 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.test.bankapp.NotEnoughFundsException;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Client {
     private static final Logger log = LogManager.getLogger(Client.class);
+    private Long id;
     private String name;
-    private Set<Account> accounts = new HashSet<Account>();
+    private List<Account> accounts = new ArrayList<Account>();
     private Account activeAccount;
     private float initialOverdraft;
     private Gender gender;
     private String email;
     private String phone;
     private String city;
+
 
     private final static int INITIAL_OVERDRTAFT = 300;
     public final static String CLIENT_CHECKING_ACCOUNT_TYPE = "checking";
@@ -31,13 +30,7 @@ public class Client {
     }
 
     public Client(float initialOverdraft) {
-        Account account = createAccount(initialOverdraft == 0 ? CLIENT_SAVING_ACCOUNT_TYPE : CLIENT_CHECKING_ACCOUNT_TYPE);
-        this.initialOverdraft = initialOverdraft;
-        if (account != null &&
-                account instanceof CheckingAccount) {
-            ((CheckingAccount) account).setOverdraft(initialOverdraft);
-        }
-        addAccount(account);
+        setInitialOverdraft(initialOverdraft);
     }
 
     public Client(Gender gender) {
@@ -51,15 +44,15 @@ public class Client {
     }
 
     public void addAccount(Account account) {
-
-        if (activeAccount == null) {
-            setActiveAccount(account);
-        }
         accounts.add(account);
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setInitialOverdraft(float initialOverdraft) {
+        this.initialOverdraft = initialOverdraft;
     }
 
     public void setActiveAccount(Account activeAccount) {
@@ -108,6 +101,14 @@ public class Client {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void deposit(float x) {
@@ -168,7 +169,7 @@ public class Client {
         return newAccout;
     }
 
-    public Set<Account> getAccounts() {
+    public List<Account> getAccounts() {
         return accounts;
     }
 
@@ -184,6 +185,7 @@ public class Client {
     }
 
     public void printReport() {
+        System.out.println("  ID                : " + getId());
         System.out.println("  Client name       : " + getClientSalutation());
         System.out.println("  Client geder      : " + (getGender() != null ? getGender().gender : ""));
         System.out.println("  Client phone      : " + getPhone());
@@ -192,8 +194,10 @@ public class Client {
         System.out.format("  Client balance    : %.2f\n", getBalance());
         System.out.println("  Client city       : " + getCity());
         System.out.println("  Active account    :");
-        getActiveAccount().printReport();
-        Set<Account> accounts = getAccounts();
+        if (getActiveAccount()!=null) {
+            getActiveAccount().printReport();
+        }
+        List<Account> accounts = getAccounts();
         System.out.println("  Client accounts information  (accounts count " + accounts.size() + ") :");
         int j = 1;
         for (Account account : accounts) {
@@ -209,13 +213,14 @@ public class Client {
         return gender.gender + ". " + name;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
         Client client = (Client) o;
-
+        if (id != null ? !id.equals(client.id) : client.id != null) return false;
         if (Float.compare(client.initialOverdraft, initialOverdraft) != 0) return false;
         if (name != null ? !name.equals(client.name) : client.name != null) return false;
         if (phone != null ? !phone.equals(client.phone) : client.phone != null) return false;
@@ -224,8 +229,10 @@ public class Client {
         if (activeAccount != null ? !activeAccount.equals(client.activeAccount) : client.activeAccount != null)
             return false;
 
-        if (gender.gender != null ? !gender.gender.equals(client.gender.gender) : client.gender.gender != null) return false;
-        if (accounts != null ? !Arrays.equals(accounts.toArray(), client.accounts.toArray()): client.accounts != null) return false;
+        if (gender.gender != null ? !gender.gender.equals(client.gender.gender) : client.gender.gender != null)
+            return false;
+        if (accounts != null ? !Arrays.equals(accounts.toArray(), client.accounts.toArray()) : client.accounts != null)
+            return false;
         return true;
 
     }
@@ -233,10 +240,10 @@ public class Client {
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (id != null ? id.hashCode() : 0);
         result = 31 * result + (phone != null ? phone.hashCode() : 0);
         result = 31 * result + (email != null ? email.hashCode() : 0);
         result = 31 * result + (city != null ? city.hashCode() : 0);
-        result = 31 * result + (accounts != null ? accounts.hashCode() : 0);
         result = 31 * result + (accounts != null ? accounts.hashCode() : 0);
         result = 31 * result + (activeAccount != null ? activeAccount.hashCode() : 0);
         result = 31 * result + (initialOverdraft != +0.0f ? Float.floatToIntBits(initialOverdraft) : 0);
@@ -268,6 +275,7 @@ public class Client {
                 ", activeAccount=" + activeAccount +
                 ", initialOverdraft=" + initialOverdraft +
                 ", gender=" + gender +
+                ", id=" + id +
                 '}';
     }
 }

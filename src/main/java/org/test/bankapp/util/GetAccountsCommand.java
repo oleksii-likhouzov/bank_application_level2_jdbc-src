@@ -1,4 +1,4 @@
-package org.test.util;
+package org.test.bankapp.util;
 
 import org.test.bankapp.model.Account;
 import org.test.bankapp.model.Client;

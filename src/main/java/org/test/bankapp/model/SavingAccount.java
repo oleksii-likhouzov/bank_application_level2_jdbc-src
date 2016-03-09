@@ -26,20 +26,26 @@ public final class SavingAccount extends AbstractAccount {
         setBalance(getBalance() - x);
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-
         SavingAccount account = (SavingAccount) o;
-        System.out.println(":"+account);
-        return Float.compare(account.getBalance(), getBalance()) == 0;
+        if (Float.compare(account.getBalance(), getBalance()) != 0) return false;
+        if (isActive() != account.isActive()) return false;
 
+        if(!(getId() != null ? getId().equals(account.getId()) : account.getId() == null))
+        return false;
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return getBalance() != +0.0f ? Float.floatToIntBits(getBalance()) : 0;
+        int result = (getBalance() != +0.0f ? Float.floatToIntBits(getBalance()) : 0);
+        result = 31 * result + (getId() != null ? getId().hashCode() : 0);
+        result = 31 * result + (isActive() ? 1 : 0);
+        return result;
     }
 
     @Override

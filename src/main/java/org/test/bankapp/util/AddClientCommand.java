@@ -1,6 +1,7 @@
-package org.test.util;
+package org.test.bankapp.util;
 
 import org.test.bankapp.ClientExistsException;
+import org.test.bankapp.model.Account;
 import org.test.bankapp.model.Client;
 import org.test.bankapp.model.Gender;
 import org.test.bankapp.service.BankService;
@@ -56,26 +57,38 @@ public class AddClientCommand implements Command {
         if (clientEmail != null && clientEmail.length() > 0 && !StringUtility.checkIsEmail(clientEmail)) {
             throw new RuntimeException("Not a valid email!");
         }
+        String clientSity;
+        System.out.println("Client city value:\n");
+        clientSity = br.readLine();
         tmpClient.setName(clientName);
         tmpClient.setPhone(clientPhone);
         tmpClient.setEmail(clientEmail);
+        tmpClient.setCity(clientSity);
     }
 
     public void execute() {
+        BankCommander.checkCurrentBank();
         try {
             readClientData();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        BankCommander.currentClient = tmpClient;
         BankService bankService = new BankServiceImpl();
         try {
-            bankService.addClient(BankCommander.currentBank, BankCommander.currentClient);
+
+            Account account = tmpClient.createAccount(Client.CLIENT_SAVING_ACCOUNT_TYPE);
+            account.setActive(true);
+            tmpClient.addAccount(account);
+            tmpClient.setActiveAccount(account);
+            if (tmpClient.getInitialOverdraft() > 0) {
+                Account checkingAccount = tmpClient.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE);
+                tmpClient.addAccount(checkingAccount);
+            }
+            tmpClient = bankService.addClient(BankCommander.currentBank, tmpClient);
             BankCommander.currentClient = tmpClient;
         } catch (ClientExistsException exception) {
             throw new RuntimeException(exception);
-
         }
     }
 

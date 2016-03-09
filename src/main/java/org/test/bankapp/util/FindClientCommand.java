@@ -1,4 +1,4 @@
-package org.test.util;
+package org.test.bankapp.util;
 
 
 import org.test.bankapp.model.Client;
@@ -27,7 +27,7 @@ public class FindClientCommand implements Command{
         System.out.println("--------------------------------\n" +
                 "- [Find client] \n" +
                 "--------------------------------");
-
+        BankCommander.checkCurrentBank();
         try {
             readClientData();
         } catch (IOException e) {

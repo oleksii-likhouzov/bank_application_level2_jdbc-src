@@ -1,50 +1,44 @@
-package org.test.util;
+package org.test.bankapp.util;
 
-
-import org.test.bankapp.NotEnoughFundsException;
+import org.test.bankapp.dao.ClientDAO;
+import org.test.bankapp.dao.ClientDAOImpl;
 import org.test.bankapp.model.Client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class WithdrawCommand implements Command {
-    private float withdrawValue;
+public class DepositCommand implements Command {
+    private float depositeValue;
 
     private void readAccountData() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("-----------------------------------------------\n" +
-                "Please, input withdraw velue:");
+                "Please, input deposite velue:");
         try {
-            withdrawValue = Float.parseFloat(br.readLine());
+            depositeValue = Float.parseFloat(br.readLine());
         } catch (NumberFormatException nfe) {
             throw new RuntimeException("Invalid number Format!");
         }
     }
 
-    public void execute()  {
+    public void execute() {
         System.out.println("--------------------------------\n" +
-                "- [Active account withdraw] \n" +
+                "- [Active account deposite] \n" +
                 "--------------------------------");
-        Client currentClient = BankCommander.currentClient;
-        if (currentClient == null) {
-            throw new RuntimeException("Active client not defined");
-        }
+        BankCommander.checkCurrentClient();
+        BankCommander.checkCurrentBank();
         try {
             readAccountData();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        try {
-            currentClient.withdraw(withdrawValue);
-        } catch (NotEnoughFundsException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
+        BankCommander.currentClient.deposit(depositeValue);
+        ClientDAO clientDAO = new ClientDAOImpl();
+        BankCommander.currentClient = clientDAO.save(BankCommander.currentClient, BankCommander.currentBank.getId());
+     }
 
     public void printCommandInfo() {
-        System.out.println("Withdraw Active account");
+        System.out.println("Deposit Active account");
     }
 }

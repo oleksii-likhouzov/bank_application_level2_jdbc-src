@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import org.test.bankapp.model.*;
 import org.test.bankapp.service.BankService;
 import org.test.bankapp.service.BankServiceImpl;
-import org.test.util.BankCommander;
+import org.test.bankapp.util.BankCommander;
 
 
 import java.io.IOException;
@@ -26,10 +26,15 @@ public class BankApplication {
         Client client = new Client(gender);
         client.setName(clientName);
         try {
-        bankService.addClient(bank, client);
+            client=bankService.addClient(bank, client);
         } catch (ClientExistsException exception) {
             log.log(Level.ERROR, "Duplicate client name: \"" + client.getName() + "\"");
+            return;
         }
+        Account account = client.createAccount(Client.CLIENT_SAVING_ACCOUNT_TYPE);
+        account.setActive(true);
+        client.addAccount(account);
+        client.setActiveAccount(account);
     }
 
     private void addClient(String clientName, float initialOverdraft, Gender gender) {
@@ -38,16 +43,21 @@ public class BankApplication {
         Client client = new Client(gender, initialOverdraft);
         client.setName(clientName);
         try {
-            bankService.addClient(bank, client);
+            client=bankService.addClient(bank, client);
         } catch (ClientExistsException exception) {
             log.log(Level.ERROR, "Duplicate client name: \"" + client.getName() + "\"");
+            return;
         }
+        Account account = client.createAccount(initialOverdraft == 0 ? Client.CLIENT_SAVING_ACCOUNT_TYPE : Client.CLIENT_CHECKING_ACCOUNT_TYPE);
+        account.setActive(true);
+        client.addAccount(account);
+        client.setActiveAccount(account);
     }
 
     public void initialize() {
         BankService bankService = new BankServiceImpl();
         // findClientByName
-        bank = new Bank();
+        bank = new Bank("My bank");
         addClient("First Client", Gender.FEMALE);
         addClient("Second Client", 100, Gender.FEMALE);
         addClient("Third Client", 0, Gender.MALE);
@@ -55,12 +65,13 @@ public class BankApplication {
         addClient("For delete", 200, Gender.FEMALE);
         addClient("Five Client", 78, Gender.MALE);
         Set<Client> clients = bank.getClients();
-        Client tmpClient =  bankService.findClientByName(bank, "Second Client");
+        Client tmpClient = bankService.findClientByName(bank, "Second Client");
         tmpClient.setCity("Monreal");
 
 
-        tmpClient =  bankService.findClientByName(bank, "Third Client");
+        tmpClient = bankService.findClientByName(bank, "Third Client");
         tmpClient.setCity("Monreal");
+        bankService.addAccount(tmpClient, tmpClient.createAccount(Client.CLIENT_SAVING_ACCOUNT_TYPE));
         bankService.addAccount(tmpClient, tmpClient.createAccount(Client.CLIENT_SAVING_ACCOUNT_TYPE));
         bankService.addAccount(tmpClient, tmpClient.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE));
 
@@ -68,10 +79,10 @@ public class BankApplication {
         bankService.addAccount(tmpClient, tempAccount);
 
         bankService.setActiveAccount(tmpClient, tempAccount);
-        tmpClient =  bankService.findClientByName(bank, "For delete");
+        tmpClient = bankService.findClientByName(bank, "For delete");
         bankService.removeClient(bank, tmpClient);
         for (Client client : clients) {
-            Set<Account> accounts = client.getAccounts();
+            List<Account> accounts = client.getAccounts();
             for (Account account : accounts) {
                 account.deposit(((int) (Math.random() * 100 * 100)) / 100.f);
             }
@@ -113,8 +124,8 @@ public class BankApplication {
     // оторый изменяет значение баланса (методы deposit() и withdraw()) для некоторых счетов клиентов банка.
     public void modifyBank() {
         if (bank != null) {
-            Set <Client> clients = bank.getClients();
-            for (Client client:clients) {
+            Set<Client> clients = bank.getClients();
+            for (Client client : clients) {
                 Account clientActiveAccount = client.getActiveAccount();
                 float clientBalance = clientActiveAccount.getBalance();
                 if (clientBalance > 0) {

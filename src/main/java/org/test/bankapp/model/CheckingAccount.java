@@ -50,14 +50,20 @@ public final class CheckingAccount extends AbstractAccount {
         if (o == null || getClass() != o.getClass()) return false;
         CheckingAccount account = (CheckingAccount) o;
         if (Float.compare(account.overdraft, overdraft) != 0) return false;
-        return Float.compare(account.getBalance(), getBalance()) == 0;
+        if (isActive() != account.isActive()) return false;
+        if (Float.compare(account.getBalance(), getBalance()) != 0) return false;
+        return getId() != null ? getId().equals(account.getId()) : account.getId() == null;
+
     }
 
     @Override
     public int hashCode() {
-        System.out.println(this);
-        int result = getBalance() != +0.0f ? Float.floatToIntBits(getBalance()) : 0;
-        return (31 * result + (overdraft != +0.0f ? Float.floatToIntBits(overdraft) : 0));
+     //   System.out.println(this);
+        int result = (getBalance() != +0.0f ? Float.floatToIntBits(getBalance()) : 0);
+        result = 31 * result + (getId() != null ? getId().hashCode() : 0);
+        result = 31 * result + (isActive() ? 1 : 0);
+        result = (31 * result + (overdraft != +0.0f ? Float.floatToIntBits(overdraft) : 0));
+        return result;
     }
 
     @Override

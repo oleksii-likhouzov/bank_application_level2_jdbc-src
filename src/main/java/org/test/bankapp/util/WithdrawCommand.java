@@ -1,27 +1,32 @@
-package org.test.util;
+package org.test.bankapp.util;
 
+
+import org.test.bankapp.NotEnoughFundsException;
+import org.test.bankapp.dao.ClientDAO;
+import org.test.bankapp.dao.ClientDAOImpl;
 import org.test.bankapp.model.Client;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class DepositCommand implements Command {
-    private float depositeValue;
+public class WithdrawCommand implements Command {
+    private float withdrawValue;
 
     private void readAccountData() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("-----------------------------------------------\n" +
-                "Please, input deposite velue:");
+                "Please, input withdraw velue:");
         try {
-            depositeValue = Float.parseFloat(br.readLine());
+            withdrawValue = Float.parseFloat(br.readLine());
         } catch (NumberFormatException nfe) {
             throw new RuntimeException("Invalid number Format!");
         }
     }
 
-    public void execute() {
+    public void execute()  {
         System.out.println("--------------------------------\n" +
-                "- [Active account deposite] \n" +
+                "- [Active account withdraw] \n" +
                 "--------------------------------");
         Client currentClient = BankCommander.currentClient;
         if (currentClient == null) {
@@ -32,10 +37,18 @@ public class DepositCommand implements Command {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        currentClient.deposit(depositeValue);
+
+        try {
+            currentClient.withdraw(withdrawValue);
+            ClientDAO clientDAO = new ClientDAOImpl();
+            BankCommander.currentClient = clientDAO.save(BankCommander.currentClient, BankCommander.currentBank.getId());
+        } catch (NotEnoughFundsException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     public void printCommandInfo() {
-        System.out.println("Deposit Active account");
+        System.out.println("Withdraw Active account");
     }
 }

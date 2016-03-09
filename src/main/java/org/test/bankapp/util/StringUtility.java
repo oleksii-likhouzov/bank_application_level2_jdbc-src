@@ -1,4 +1,4 @@
-package org.test.util;
+package org.test.bankapp.util;
 
 /**
  * Created by stalker on 06.03.16.

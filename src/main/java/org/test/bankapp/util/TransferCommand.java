@@ -1,6 +1,8 @@
-package org.test.util;
+package org.test.bankapp.util;
 
 import org.test.bankapp.NotEnoughFundsException;
+import org.test.bankapp.dao.ClientDAO;
+import org.test.bankapp.dao.ClientDAOImpl;
 import org.test.bankapp.model.Client;
 import org.test.bankapp.service.BankService;
 import org.test.bankapp.service.BankServiceImpl;
@@ -55,13 +57,22 @@ public class TransferCommand implements Command {
 
         try {
             BankCommander.currentClient.withdraw(transferValue);
+            ClientDAO clientDAO = new ClientDAOImpl();
+            BankCommander.currentClient = clientDAO.save(BankCommander.currentClient, BankCommander.currentBank.getId());
+
         } catch (NotEnoughFundsException e) {
             throw new RuntimeException(e);
         }
         try {
             tmpClient.deposit(transferValue);
+
+            ClientDAO clientDAO = new ClientDAOImpl();
+            clientDAO.save(tmpClient, BankCommander.currentBank.getId());
+
         }   catch (Exception e) {
             BankCommander.currentClient.deposit(transferValue);
+            ClientDAO clientDAO = new ClientDAOImpl();
+            BankCommander.currentClient = clientDAO.save(BankCommander.currentClient, BankCommander.currentBank.getId());
             throw new RuntimeException(e);
         }
     }

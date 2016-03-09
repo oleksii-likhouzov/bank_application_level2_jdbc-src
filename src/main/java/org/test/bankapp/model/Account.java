@@ -15,4 +15,11 @@ public interface Account extends Report {
 
     //  выводящий округленное значение баланса счета
     void decimalValue();
+
+    // устанавливает признак активный
+    void setActive(boolean active);
+    // Проверяет признак активный или нет
+    boolean isActive();
+
+    Long  getId();
 }

@@ -1,4 +1,4 @@
-package org.test.util;
+package org.test.bankapp.util;
 
 public interface Command {
     void execute();
