@@ -5,10 +5,12 @@ import org.test.bankapp.NotEnoughFundsException;
 import org.test.bankapp.dao.ClientDAO;
 import org.test.bankapp.dao.ClientDAOImpl;
 import org.test.bankapp.model.Client;
+import org.test.bankapp.model.ContextLocal;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 
 public class WithdrawCommand implements Command {
     private float withdrawValue;
@@ -24,7 +26,7 @@ public class WithdrawCommand implements Command {
         }
     }
 
-    public void execute()  {
+    public void execute() throws SQLException{
         System.out.println("--------------------------------\n" +
                 "- [Active account withdraw] \n" +
                 "--------------------------------");
@@ -41,7 +43,13 @@ public class WithdrawCommand implements Command {
         try {
             currentClient.withdraw(withdrawValue);
             ClientDAO clientDAO = new ClientDAOImpl();
-            BankCommander.currentClient = clientDAO.save(BankCommander.currentClient, BankCommander.currentBank.getId());
+            try {
+                BankCommander.currentClient = clientDAO.save(BankCommander.currentClient, BankCommander.currentBank.getId());
+                ContextLocal.conn.commit();
+            } catch (SQLException e) {
+                ContextLocal.conn.rollback();
+                e.printStackTrace();
+            }
         } catch (NotEnoughFundsException e) {
             throw new RuntimeException(e);
         }
@@ -52,3 +60,4 @@ public class WithdrawCommand implements Command {
         System.out.println("Withdraw Active account");
     }
 }
+

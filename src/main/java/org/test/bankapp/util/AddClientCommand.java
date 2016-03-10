@@ -3,6 +3,7 @@ package org.test.bankapp.util;
 import org.test.bankapp.ClientExistsException;
 import org.test.bankapp.model.Account;
 import org.test.bankapp.model.Client;
+import org.test.bankapp.model.ContextLocal;
 import org.test.bankapp.model.Gender;
 import org.test.bankapp.service.BankService;
 import org.test.bankapp.service.BankServiceImpl;
@@ -10,6 +11,7 @@ import org.test.bankapp.service.BankServiceImpl;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 
 public class AddClientCommand implements Command {
 
@@ -66,7 +68,7 @@ public class AddClientCommand implements Command {
         tmpClient.setCity(clientSity);
     }
 
-    public void execute() {
+    public void execute() throws SQLException{
         BankCommander.checkCurrentBank();
         try {
             readClientData();
@@ -87,8 +89,13 @@ public class AddClientCommand implements Command {
             }
             tmpClient = bankService.addClient(BankCommander.currentBank, tmpClient);
             BankCommander.currentClient = tmpClient;
+            ContextLocal.conn.commit();
         } catch (ClientExistsException exception) {
+            ContextLocal.conn.rollback();
             throw new RuntimeException(exception);
+        } catch (SQLException e) {
+            ContextLocal.conn.rollback();
+            e.printStackTrace();
         }
     }
 

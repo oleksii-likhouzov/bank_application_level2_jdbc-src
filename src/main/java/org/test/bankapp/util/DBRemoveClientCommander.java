@@ -1,10 +1,12 @@
 package org.test.bankapp.util;
 
 import org.test.bankapp.model.Bank;
+import org.test.bankapp.model.ContextLocal;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 
 /**
  * Created by stalker on 08.03.16.
@@ -25,7 +27,7 @@ public class DBRemoveClientCommander implements Command {
         }
     }
 
-    public void execute() {
+    public void execute() throws SQLException {
         System.out.println("--------------------------------\n" +
                 "- [Remove current client from DB] \n" +
                 "--------------------------------");
@@ -39,8 +41,15 @@ public class DBRemoveClientCommander implements Command {
         if (!userConfirmation.toUpperCase().equals("Y")) {
             return;
         }
-        Bank.removeClient(BankCommander.currentClient);
-        BankCommander.currentClient = null;
+
+        try {
+            BankCommander.currentBank.removeClient(BankCommander.currentClient);
+            ContextLocal.conn.commit();
+            BankCommander.currentClient = null;
+        } catch (SQLException e) {
+            ContextLocal.conn.rollback();
+            e.printStackTrace();
+        }
     }
 
     public void printCommandInfo() {

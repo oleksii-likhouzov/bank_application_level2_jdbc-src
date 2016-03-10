@@ -27,6 +27,7 @@ public class ContextLocal {
                 "sa", // login
                 "" // password
         );
+        conn.setAutoCommit(false);
         return conn;
     }
 

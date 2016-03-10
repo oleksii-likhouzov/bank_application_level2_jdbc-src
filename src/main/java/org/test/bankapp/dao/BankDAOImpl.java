@@ -11,11 +11,11 @@ import org.test.bankapp.model.ContextLocal;
 public class BankDAOImpl implements BankDAO {
 
 
-    public Bank getBankByName(String name) {
+    public Bank getBankByName(String name)  throws SQLException{
         Bank tmpBank = null;
-
+        Statement stmt = null;
         try {
-            Statement stmt = ContextLocal.conn.createStatement();
+            stmt = ContextLocal.conn.createStatement();
             String sql = "SELECT id FROM t_bank  \n" +
                     " Where name = '" + name + "'";
             // 2) Execute query and get the ResultSet
@@ -26,15 +26,16 @@ public class BankDAOImpl implements BankDAO {
                 tmpBank = new Bank(name);
                 tmpBank.setId(rs.getLong("id"));
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            tmpBank = null;
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
         }
         return tmpBank;
     }
 
 
-    public BankInfo getBankInfo(Bank bank) {
+    public BankInfo getBankInfo(Bank bank) throws SQLException {
         BankInfo bankInfo = new BankInfo();
         float bankBalance = 0.f;
         for (Client client : bank.getClients()) {

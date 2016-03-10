@@ -8,6 +8,8 @@ public class ClientTest
     @Test
     public void testClientEquals() {
         Client client = new Client(Gender.FEMALE);
+        Account tmpAccount = client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE);
+        client.setActiveAccount(tmpAccount);
         client.getActiveAccount().deposit(10);
         client.addAccount(client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE));
         client.addAccount(client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE));
@@ -15,7 +17,8 @@ public class ClientTest
         account.deposit(20);
         client.addAccount(account);
         Client clientEqual = new Client(Gender.FEMALE);
-
+        tmpAccount = client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE);
+        clientEqual.setActiveAccount(tmpAccount);
         clientEqual.getActiveAccount().deposit(10);
         clientEqual.addAccount(clientEqual.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE));
         clientEqual.addAccount(clientEqual.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE));
@@ -30,6 +33,8 @@ public class ClientTest
     @Test
     public void testHashCode() {
         Client client = new Client(Gender.FEMALE);
+        Account tmpAccount = client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE);
+        client.setActiveAccount(tmpAccount);
         client.getActiveAccount().deposit(10);
         client.addAccount(client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE));
         client.addAccount(client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE));
@@ -42,6 +47,8 @@ public class ClientTest
     @Test
     public void testToString() {
         Client client = new Client(Gender.FEMALE);
+        Account tmpAccount = client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE);
+        client.setActiveAccount(tmpAccount);
         client.getActiveAccount().deposit(10);
         client.addAccount(client.createAccount(Client.CLIENT_CHECKING_ACCOUNT_TYPE));
         client.addAccount(client.createAccount(Client.CLIENT_SAVING_ACCOUNT_TYPE));

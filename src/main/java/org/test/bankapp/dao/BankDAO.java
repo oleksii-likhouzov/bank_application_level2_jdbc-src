@@ -3,6 +3,8 @@ package org.test.bankapp.dao;
 import org.test.bankapp.BankInfo;
 import org.test.bankapp.model.Bank;
 
+import java.sql.SQLException;
+
 public interface BankDAO {
     /**
      * Finds Bank by its name.
@@ -13,12 +15,12 @@ public interface BankDAO {
      * @return
      */
 
-    Bank getBankByName(String name);
+    Bank getBankByName(String name) throws SQLException;
     /**
 
      * Should fill the BankInfo
 
      */
 
-    BankInfo getBankInfo(Bank bank);
+    BankInfo getBankInfo(Bank bank) throws SQLException;
 }

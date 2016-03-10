@@ -2,6 +2,7 @@ package org.test.bankapp.dao;
 
 import org.test.bankapp.model.Account;
 
+import java.sql.SQLException;
 import java.util.List;
 
 
@@ -13,7 +14,7 @@ public interface AccountDAO {
      * @return
      */
 
-    List<Account> getAllAccounts(Long clientId);
+    List<Account> getAllAccounts(Long clientId) throws SQLException;
 
 //    /**
 //     * Returns the Active Account
@@ -32,7 +33,7 @@ public interface AccountDAO {
      * @param account
      */
 
-    void save(Account account, Long clientId);
+    void save(Account account, Long clientId) throws SQLException;
 
 
     /**
@@ -41,5 +42,5 @@ public interface AccountDAO {
      * @param account
      */
 
-    void remove(Account account);
+    void remove(Account account) throws SQLException;
 }

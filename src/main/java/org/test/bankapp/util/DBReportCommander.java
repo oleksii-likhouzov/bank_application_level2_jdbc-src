@@ -4,7 +4,9 @@ import org.test.bankapp.BankInfo;
 import org.test.bankapp.dao.BankDAO;
 import org.test.bankapp.dao.BankDAOImpl;
 import org.test.bankapp.model.Client;
+import org.test.bankapp.model.ContextLocal;
 
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -13,11 +15,20 @@ import java.util.Map;
  * Created by stalker on 08.03.16.
  */
 public class DBReportCommander  implements Command{
-    public void execute() {
+    public void execute()  throws SQLException {
         BankCommander.checkCurrentBank();
         BankCommander.currentBank.printReport();
         BankDAO bankDAO = new BankDAOImpl();
-        BankInfo bankInfo = bankDAO.getBankInfo(BankCommander.currentBank);
+
+        BankInfo bankInfo = null;
+        try {
+            bankInfo = bankDAO.getBankInfo(BankCommander.currentBank);
+            ContextLocal.conn.commit();
+        } catch (SQLException e) {
+            ContextLocal.conn.rollback();
+            e.printStackTrace();
+            return;
+        }
 
         System.out.println("\n\n\n\nBank report  : " + BankCommander.currentBank.getName());
         System.out.println("Report date  : " + new Date());

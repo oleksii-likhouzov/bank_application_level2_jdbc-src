@@ -3,6 +3,7 @@ package org.test.bankapp.dao;
 import org.test.bankapp.model.Bank;
 import org.test.bankapp.model.Client;
 
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -17,7 +18,7 @@ public interface ClientDAO {
      * @return
      */
 
-    Client findClientByName(Long bankId, String name);
+    Client findClientByName(Long bankId, String name) throws SQLException;
 
 
     /**
@@ -29,7 +30,7 @@ public interface ClientDAO {
      * @return
      */
 
-    List<Client> getAllClients(Long bankId);
+    List<Client> getAllClients(Long bankId) throws SQLException;
 
     /**
      * Method should insert new Client (if id==null)
@@ -39,7 +40,7 @@ public interface ClientDAO {
      * @param client
      */
 
-    Client save(Client client, Long bankId);
+    Client save(Client client, Long bankId) throws SQLException;
 
 
     /**
@@ -48,5 +49,5 @@ public interface ClientDAO {
      * @param client
      */
 
-    void remove(Client client);
+    void remove(Client client) throws SQLException;
 }

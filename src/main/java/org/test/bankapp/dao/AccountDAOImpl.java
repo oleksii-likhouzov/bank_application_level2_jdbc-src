@@ -10,10 +10,11 @@ import java.util.List;
 
 
 public class AccountDAOImpl implements AccountDAO {
-    public Long findAccountByCode(String code) {
+    public Long findAccountByCode(String code) throws SQLException {
         Long result = null;
+        PreparedStatement stmt = null;
         try {
-            PreparedStatement stmt = ContextLocal.conn.prepareStatement(
+            stmt = ContextLocal.conn.prepareStatement(
                     "SELECT RC.ID\n" +
                             "   FROM  REF_ACCOUNT_TYPE RC \n" +
                             " WHERE RC.CODE= ? ");
@@ -24,19 +25,19 @@ public class AccountDAOImpl implements AccountDAO {
             if (rs.next()) {
                 result = rs.getLong("id");
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-
-            return null;
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
         }
         return result;
     }
 
-    public List<Account> getAllAccounts(Long clientId) {
+    public List<Account> getAllAccounts(Long clientId) throws SQLException {
         List<Account> accounts = new ArrayList<Account>();
+        PreparedStatement stmt = null;
         try {
-            PreparedStatement stmt = ContextLocal.conn.prepareStatement(
+            stmt = ContextLocal.conn.prepareStatement(
                     "select  a.id, \n" +
                             "             a.is_primary,\n" +
                             "             a.balance,\n" +
@@ -45,7 +46,6 @@ public class AccountDAOImpl implements AccountDAO {
                             "  from t_account a\n" +
                             "  join ref_account_type at1 on at1.id = a.account_type_id\n" +
                             "where client_id = ?");
-
             stmt.setLong(1, clientId.longValue());
             // 2) Execute query and get the ResultSet
             ResultSet rs = stmt.executeQuery();
@@ -67,39 +67,30 @@ public class AccountDAOImpl implements AccountDAO {
                     CheckingAccount tempAccount = new CheckingAccount(overdraft.floatValue());
                     tempAccount.setId(id);
                     tempAccount.setActive(isPrimary);
-
                     if (balance.floatValue() < 0.f) {
                         tempAccount.withdraft(-balance.floatValue());
                     } else {
                         tempAccount.deposit(balance.floatValue());
                     }
-
                     accounts.add(tempAccount);
                 }
-
             }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
         } catch (NotEnoughFundsException e) {
             e.printStackTrace();
             return null;
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
         }
         return accounts;
     }
 
-//    public Account getActiveAccount(Long clientId) {
-//        return null;
-//    }
-
-    public void save(Account account, Long clientId) {
-
-        PreparedStatement stmt;
+    public void save(Account account, Long clientId) throws SQLException {
+        PreparedStatement stmt = null;
         try {
             Float overdraft = null;
             Long accountTypeId = null;
-
             if (account.getId() == null) {
                 stmt = ContextLocal.conn.prepareStatement(
                         "INSERT into t_account (" +
@@ -109,7 +100,6 @@ public class AccountDAOImpl implements AccountDAO {
                                 "balance, " +
                                 "is_primary ) \n" +
                                 "values(?,?,?,?,?)");
-
                 if (account instanceof CheckingAccount) {
                     overdraft = ((CheckingAccount) account).getOverdraft();
                     accountTypeId = findAccountByCode(Client.CLIENT_CHECKING_ACCOUNT_TYPE);
@@ -118,10 +108,9 @@ public class AccountDAOImpl implements AccountDAO {
                 }
                 stmt.setLong(1, clientId);
                 stmt.setLong(2, accountTypeId);
-                stmt.setBigDecimal(3, new BigDecimal(overdraft!= null?overdraft: 0));
+                stmt.setBigDecimal(3, new BigDecimal(overdraft != null ? overdraft : 0));
                 stmt.setBigDecimal(4, new BigDecimal(account.getBalance()));
                 stmt.setBoolean(5, account.isActive());
-
             } else {
                 stmt = ContextLocal.conn.prepareStatement(
                         "UPDATE t_account set " +
@@ -129,30 +118,34 @@ public class AccountDAOImpl implements AccountDAO {
                                 "balance= ?, " +
                                 "is_primary =?\n" +
                                 "where id =? ");
-
-                stmt.setBigDecimal(1, new BigDecimal(overdraft!= null?overdraft: 0));
+                stmt.setBigDecimal(1, new BigDecimal(overdraft != null ? overdraft : 0));
                 stmt.setBigDecimal(2, new BigDecimal(account.getBalance()));
                 stmt.setBoolean(3, account.isActive());
                 stmt.setLong(4, account.getId());
             }
             // 2) Execute delete operation
             int rowCount = stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
         }
     }
 
-    public void remove(Account account) {
+    public void remove(Account account) throws SQLException {
+        PreparedStatement stmt = null;
         try {
-            PreparedStatement stmt = ContextLocal.conn.prepareStatement(
+            stmt = ContextLocal.conn.prepareStatement(
                     "DELETE  from t_account  where id = ? ");
 
             stmt.setLong(1, account.getId());
             // 2) Execute delete operation
             int rowCount = stmt.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
+            ContextLocal.conn.commit();
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
         }
     }
 }

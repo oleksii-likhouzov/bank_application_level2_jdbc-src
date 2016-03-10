@@ -4,12 +4,14 @@ import org.test.bankapp.NotEnoughFundsException;
 import org.test.bankapp.dao.ClientDAO;
 import org.test.bankapp.dao.ClientDAOImpl;
 import org.test.bankapp.model.Client;
+import org.test.bankapp.model.ContextLocal;
 import org.test.bankapp.service.BankService;
 import org.test.bankapp.service.BankServiceImpl;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 
 
 public class TransferCommand implements Command {
@@ -26,17 +28,19 @@ public class TransferCommand implements Command {
             throw new RuntimeException("Invalid number Format!");
         }
     }
+
     private void readClientData() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.println("-----------------------------------------------\n" +
                 "Please, input client name:");
 
         clientName = br.readLine();
-        if (clientName==null || clientName.length()==0) {
+        if (clientName == null || clientName.length() == 0) {
             throw new RuntimeException("Invalid Client name!");
         }
     }
-    public void execute() {
+
+    public void execute()throws SQLException {
         if (BankCommander.currentClient == null) {
             throw new RuntimeException("Active client not defined");
         }
@@ -50,30 +54,26 @@ public class TransferCommand implements Command {
             throw new RuntimeException(e);
         }
         BankService bankService = new BankServiceImpl();
-        Client tmpClient = bankService.findClientByName(BankCommander.currentBank, clientName) ;
-        if (tmpClient== null) {
+        Client tmpClient = bankService.findClientByName(BankCommander.currentBank, clientName);
+        if (tmpClient == null) {
             throw new RuntimeException("Client not found by name!");
         }
 
         try {
-            BankCommander.currentClient.withdraw(transferValue);
-            ClientDAO clientDAO = new ClientDAOImpl();
-            BankCommander.currentClient = clientDAO.save(BankCommander.currentClient, BankCommander.currentBank.getId());
-
-        } catch (NotEnoughFundsException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            tmpClient.deposit(transferValue);
-
+            try {
+                BankCommander.currentClient.withdraw(transferValue);
+                tmpClient.deposit(transferValue);
+            } catch (NotEnoughFundsException e) {
+                throw new RuntimeException(e);
+            }
             ClientDAO clientDAO = new ClientDAOImpl();
             clientDAO.save(tmpClient, BankCommander.currentBank.getId());
-
-        }   catch (Exception e) {
-            BankCommander.currentClient.deposit(transferValue);
-            ClientDAO clientDAO = new ClientDAOImpl();
             BankCommander.currentClient = clientDAO.save(BankCommander.currentClient, BankCommander.currentBank.getId());
-            throw new RuntimeException(e);
+            ContextLocal.conn.commit();
+        } catch (Exception e) {
+            ContextLocal.conn.rollback();
+            // Надо перечитать клиентов текущего и изменяемого
+            //BankCommander.currentClient =
         }
     }
 

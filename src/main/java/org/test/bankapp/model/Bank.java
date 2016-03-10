@@ -5,7 +5,9 @@ import org.test.bankapp.dao.BankDAO;
 import org.test.bankapp.dao.BankDAOImpl;
 import org.test.bankapp.dao.ClientDAO;
 import org.test.bankapp.dao.ClientDAOImpl;
+import org.test.bankapp.util.BankCommander;
 
+import java.sql.SQLException;
 import java.util.*;
 
 public class Bank implements Report {
@@ -82,7 +84,7 @@ public class Bank implements Report {
         }
     }
 
-    public Client addClient(Client client) throws ClientExistsException {
+    public Client addClient(Client client) throws ClientExistsException , SQLException {
         boolean isNew = client.getId()== null;
         if(isNew) {
             checkDuplicateName(client);
@@ -146,13 +148,23 @@ public class Bank implements Report {
         System.out.println(BankReport.getClientsByCity(this));
     }
 
-    public static void removeClient(Client client) {
+    public void removeClient(Client client)  throws SQLException{
         ClientDAO clientDAO = new ClientDAOImpl();
         clientDAO.remove(client);
+        // Удалить клиента из кеша
+        clientCache.remove(client.getName());
+        Iterator iter = clients.iterator();
+        while(iter.hasNext()) {
+            Client tmpClient = (Client)iter.next();
+            if (tmpClient.equals(client)) {
+                iter.remove();
+                break;
+            }
+        }
 
     }
 
-        public static Bank getBankByName(String name) {
+        public static Bank getBankByName(String name) throws SQLException {
         BankDAO bankDao = new BankDAOImpl();
         ClientDAO clientDAO = new ClientDAOImpl();
         Bank bank = bankDao.getBankByName(name);
@@ -168,7 +180,7 @@ public class Bank implements Report {
         return bank;
     }
 
-    public static Client getClientByName(Bank bank, String name) {
+    public static Client getClientByName(Bank bank, String name)  throws SQLException {
         ClientDAO clientDao = new ClientDAOImpl();
 
         return clientDao.findClientByName(bank.id, name);
